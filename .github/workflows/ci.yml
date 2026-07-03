@@ -1,0 +1,37 @@
+name: Stock Portfolio CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Backend Dependencies
+        working-directory: ./server
+        run: npm install
+
+      - name: Install Frontend Dependencies
+        working-directory: ./client
+        run: npm install
+
+      - name: Build React App
+        working-directory: ./client
+        run: npm run build
