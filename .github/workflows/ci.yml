@@ -39,3 +39,10 @@ jobs:
       - name: Build React App
         working-directory: ./client
         run: npm run build
+
+        
+      - name: Upload React Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: client/dist
