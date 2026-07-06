@@ -1,4 +1,4 @@
-name: Stock Portfolio CI
+name: Stock Portfolio CI/CD
 
 on:
   push:
@@ -11,14 +11,14 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-
+      # Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -28,26 +28,55 @@ jobs:
             client/package-lock.json
             server/package-lock.json
 
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Install Backend Dependencies
       - name: Install Backend Dependencies
         working-directory: ./server
         run: npm ci
 
+      # Install Frontend Dependencies
       - name: Install Frontend Dependencies
         working-directory: ./client
         run: npm ci
 
+      # Build React App
       - name: Build React App
         working-directory: ./client
         run: npm run build
 
-        
+      # Upload React Build Artifact
       - name: Upload React Build
         uses: actions/upload-artifact@v4
         with:
           name: react-build
           path: client/dist
-      
+
+      # Build Backend Docker Image
       - name: Build Backend Docker Image
         run: docker build -t stock-backend ./server
+
+      # Build Frontend Docker Image
       - name: Build Frontend Docker Image
-        run: docker build -t stock-frontend ./client 
+        run: docker build -t stock-frontend ./client
+
+      # Login to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # Tag and Push Backend Image
+      - name: Push Backend Image
+        run: |
+          docker tag stock-backend ${{ secrets.DOCKER_USERNAME }}/stock-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/stock-backend:latest
+
+      # Tag and Push Frontend Image
+      - name: Push Frontend Image
+        run: |
+          docker tag stock-frontend ${{ secrets.DOCKER_USERNAME }}/stock-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/stock-frontend:latest
