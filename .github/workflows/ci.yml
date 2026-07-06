@@ -54,14 +54,6 @@ jobs:
           name: react-build
           path: client/dist
 
-      # Build Backend Docker Image
-      - name: Build Backend Docker Image
-        run: docker build -t stock-backend ./server
-
-      # Build Frontend Docker Image
-      - name: Build Frontend Docker Image
-        run: docker build -t stock-frontend ./client
-
       # Login to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -69,14 +61,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      # Tag and Push Backend Image
-      - name: Push Backend Image
-        run: |
-          docker tag stock-backend ${{ secrets.DOCKER_USERNAME }}/stock-backend:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/stock-backend:latest
+      # Build and Push Backend Image
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/stock-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      # Tag and Push Frontend Image
-      - name: Push Frontend Image
-        run: |
-          docker tag stock-frontend ${{ secrets.DOCKER_USERNAME }}/stock-frontend:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/stock-frontend:latest
+      # Build and Push Frontend Image
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./client
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/stock-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
