@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build:
+      context: ./server
+
+    container_name: stock-backend
+
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - ./server/.env
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./client
+
+    container_name: stock-frontend
+
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+    restart: unless-stopped
